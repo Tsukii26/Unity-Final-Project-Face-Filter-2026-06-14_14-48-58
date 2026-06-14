@@ -43,9 +43,21 @@ ProjectSettings/           (Unity version + build scene list)
 
 ### Architecture note
 Each scene asset contains a **single bootstrap GameObject**; the AR rig and the entire
-themed UI are constructed at runtime from code (`ARRigBuilder`, `UIFactory`, the UI
-controllers). This keeps scene files tiny and guarantees the AR rig is always wired
+themed UI are constructed at runtime from code (`AppRig`, `UIFactory`, the UI
+controllers). This keeps scene files tiny and guarantees the rig is always wired
 correctly — no fragile inspector references to break.
+
+### Simulation Mode (record your demo with no phone)
+`AppRig` automatically picks the rig for the platform:
+- **Android / iOS build** → real AR Foundation face tracking (`ARRigBuilder` + `FaceFilterManager`).
+- **Unity Editor / desktop / WebGL** → hardware-free **Simulation Mode**
+  (`SimulatedFilterController` + a procedural mannequin head that gently turns), so the
+  full app — menu, filters, carousel, toggle, capture, settings, demo — is fully usable
+  and **recordable straight from the Editor's Game view**. No ARKit/ARCore device required.
+
+Press **Play** on `MainMenu.unity`, hit **Start AR Filters** (or **Demo Mode**), and you'll
+see filters on the mannequin immediately. Set `AppRig.ForceSimulation = true` to use the
+mannequin on a device too.
 
 ---
 

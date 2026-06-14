@@ -14,9 +14,8 @@ namespace FaceFilter.UI
     /// </summary>
     public class ARFilterUIController : MonoBehaviour
     {
-        private ARRigBuilder _rig;
-        private FaceFilterManager _filters;
-        private ARCameraSwitcher _cameraSwitcher;
+        private AppRig _rig;
+        private IFilterController _filters;
         private ScreenshotCapture _capture;
 
         private Canvas _canvas;
@@ -30,12 +29,9 @@ namespace FaceFilter.UI
             AppSettings.ApplyQuality();
             UIFactory.EnsureEventSystem();
 
-            _rig = ARRigBuilder.Build();
-            _filters = _rig.FilterManager;
+            _rig = AppRig.Build();
+            _filters = _rig.Filters;
             _filters.FilterChanged += OnFilterChanged;
-
-            _cameraSwitcher = _rig.gameObject.AddComponent<ARCameraSwitcher>();
-            _cameraSwitcher.Initialize(_rig.CameraManager);
 
             _capture = gameObject.AddComponent<ScreenshotCapture>();
 
@@ -46,7 +42,7 @@ namespace FaceFilter.UI
         private void OnDestroy()
         {
             if (_filters != null) _filters.FilterChanged -= OnFilterChanged;
-            if (_rig != null) Destroy(_rig.gameObject);
+            if (_rig != null && _rig.Root != null) Destroy(_rig.Root);
         }
 
         private void BuildUI()
@@ -134,7 +130,7 @@ namespace FaceFilter.UI
             var captureBtn = UIFactory.CreateIconButton(row.transform, "\u25CF", OnCapture, AppTheme.Primary);
             captureBtn.GetComponent<RectTransform>().sizeDelta = new Vector2(190, 190);
 
-            var swap = UIFactory.CreateIconButton(row.transform, "\u21BB", () => _cameraSwitcher.Toggle(), AppTheme.Surface);
+            var swap = UIFactory.CreateIconButton(row.transform, "\u21BB", OnSwapCamera, AppTheme.Surface);
             swap.GetComponent<RectTransform>().sizeDelta = new Vector2(130, 130);
         }
 
@@ -152,14 +148,28 @@ namespace FaceFilter.UI
 
         private void Update()
         {
-            if (_statusLabel == null || _rig == null || _rig.FaceManager == null) return;
-            int count = _rig.FaceManager.trackables.count;
+            if (_statusLabel == null || _rig == null) return;
             if (!_filters.FiltersEnabled)
+            {
                 _statusLabel.text = "Filters off";
-            else if (count == 0)
-                _statusLabel.text = "Point the camera at your face";
-            else
-                _statusLabel.text = count == 1 ? "Face tracked \u2713" : count + " faces tracked \u2713";
+            }
+            else if (_rig.IsSimulation)
+            {
+                _statusLabel.text = "Simulation preview (no AR device)";
+            }
+            else if (_rig.FaceManager != null)
+            {
+                int count = _rig.FaceManager.trackables.count;
+                if (count == 0)
+                    _statusLabel.text = "Point the camera at your face";
+                else
+                    _statusLabel.text = count == 1 ? "Face tracked \u2713" : count + " faces tracked \u2713";
+            }
+        }
+
+        private void OnSwapCamera()
+        {
+            if (_rig.CameraSwitcher != null) _rig.CameraSwitcher.Toggle();
         }
 
         private void OnFilterChanged(FilterEntry entry)

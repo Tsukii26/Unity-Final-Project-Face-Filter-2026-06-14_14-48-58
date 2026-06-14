@@ -15,8 +15,8 @@ namespace FaceFilter.UI
     {
         public float secondsPerFilter = 3.5f;
 
-        private ARRigBuilder _rig;
-        private FaceFilterManager _filters;
+        private AppRig _rig;
+        private IFilterController _filters;
         private Text _nameLabel;
         private Text _counterLabel;
         private Image _progress;
@@ -28,8 +28,8 @@ namespace FaceFilter.UI
             AppSettings.ApplyQuality();
             UIFactory.EnsureEventSystem();
 
-            _rig = ARRigBuilder.Build();
-            _filters = _rig.FilterManager;
+            _rig = AppRig.Build();
+            _filters = _rig.Filters;
 
             BuildUI();
             StartCoroutine(DemoRoutine());
@@ -37,7 +37,7 @@ namespace FaceFilter.UI
 
         private void OnDestroy()
         {
-            if (_rig != null) Destroy(_rig.gameObject);
+            if (_rig != null && _rig.Root != null) Destroy(_rig.Root);
         }
 
         private void BuildUI()

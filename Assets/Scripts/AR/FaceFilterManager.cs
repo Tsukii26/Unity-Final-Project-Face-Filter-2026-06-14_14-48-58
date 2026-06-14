@@ -13,7 +13,7 @@ namespace FaceFilter.AR
     /// head movement, and exposes runtime controls (toggle, next/previous, select).
     /// </summary>
     [RequireComponent(typeof(ARFaceManager))]
-    public class FaceFilterManager : MonoBehaviour
+    public class FaceFilterManager : MonoBehaviour, IFilterController
     {
         public event Action<FilterEntry> FilterChanged;
 
